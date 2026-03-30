@@ -60,7 +60,7 @@ class WebScraperAgent:
             
             # Method 1: Dùng nitter.net (Twitter alternative frontend - free)
             # Nitter là mirror của Twitter, có thể scrape dễ dàng
-            nitter_url = f"https://nitter.net/{username}"
+            nitter_url = f"https://nitter.poast.org/{username}"
             
             logger.info(f"Scraping tweets from @{username} via Nitter...")
             
