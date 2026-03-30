@@ -67,7 +67,7 @@ class WebScraperAgent:
             # Add random delay để tránh rate limiting
             await asyncio.sleep(random.uniform(1, 3))
             
-            async with session.get(nitter_url, headers=self.headers, timeout=10) as response:
+            async with session.get(nitter_url, headers=self.headers, timeout=30) as response:
                 if response.status != 200:
                     logger.warning(f"Failed to fetch {nitter_url}: {response.status}")
                     return []
