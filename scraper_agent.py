@@ -16,7 +16,7 @@ class ScraperAgent:
     def __init__(self, target_accounts: List[str]):
         self.target_accounts = [acc.lstrip("@") for acc in target_accounts]
         self.client = None
-        self.api_key = os.getenv("TWEXAPI_KEY")  # Lấy từ environment
+        self.api_key = os.getenv("TWEXAPI_KEY")
         if not self.api_key:
             raise ValueError("TWEXAPI_KEY not set in environment")
         self.last_scraped = {}
@@ -28,13 +28,13 @@ class ScraperAgent:
 
     async def scrape_user_tweets(self, username: str, max_results: int = 5) -> List[Post]:
         """
-        Lấy tweets từ một user qua Twexapi.io
-        Giả sử endpoint: /tweets?username={username}&limit={max_results}
-        Cần kiểm tra tài liệu Twexapi.io để biết endpoint chính xác.
+        Lấy tweets từ một user qua Twexapi.io.
+        Giả định endpoint: /api/tweets?username={username}&limit={max_results}&api_key={key}
+        Có thể cần điều chỉnh dựa trên tài liệu thực tế.
         """
         session = await self._get_session()
-        # Giả sử endpoint là /tweets (có thể thay đổi)
-        url = "https://twexapi.io/api/tweets"  # Cần xác nhận endpoint đúng
+        # Dùng query param cho API key
+        url = "https://twexapi.io/api/tweets"
         params = {
             "username": username,
             "limit": max_results,
@@ -46,9 +46,11 @@ class ScraperAgent:
                     logger.error(f"Twexapi.io error {response.status} for @{username}")
                     return []
                 data = await response.json()
-                # Giả sử data là danh sách tweet, mỗi tweet có id, text, created_at, like_count, retweet_count
+                # Giả định data có dạng {"tweets": [ ... ]}
+                tweets = data.get("tweets", [])
                 posts = []
-                for tweet in data.get("tweets", []):  # Cấu trúc JSON cần kiểm tra
+                for tweet in tweets:
+                    # Các trường cần lấy: id, text, created_at, like_count, retweet_count, reply_count
                     post = Post(
                         id=tweet.get("id", ""),
                         content=tweet.get("text", ""),
@@ -75,7 +77,7 @@ class ScraperAgent:
         for account in self.target_accounts:
             posts = await self.scrape_user_tweets(account)
             all_posts.extend(posts)
-            await asyncio.sleep(2)  # Tránh rate limit
+            await asyncio.sleep(2)  # Delay giữa các tài khoản
         return all_posts
 
     async def close(self):
